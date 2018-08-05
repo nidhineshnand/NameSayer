@@ -122,7 +122,7 @@ list_files(){
   ls | while read fname
   do
     ((i++))
-    echo $i. ${fname%%.*} | tr '!@#_' ' '
+    echo $i. ${fname%%.*} | tr '^' ' '
   done
 
   #going back 2 directory levels
@@ -167,7 +167,7 @@ check_duplication(){
 
   #converting creations name to file name
   #adding underscores
-  filename=$( echo $1 | tr ' ' '!@#_' )
+  filename=$( echo $1 | tr ' ' '^' )
 
   #Checking if file exists and returning filename
   if [ ! -f "resources/creations/$filename.mkv" ]
@@ -183,7 +183,7 @@ generate_video(){
 
 
   ffmpeg -f lavfi -i color=c=black:s=320x240:d=5 -vf \
-  "drawtext=fontfile=/Windows/Fonts/arial.ttf:fontsize=30: \
+  "drawtext=fontfile=/usr/share/fonts/truetype/ubuntu/Ubuntu-L.ttf:fontsize=30: \
   fontcolor=white:x=(w-text_w)/2:y=(h-text_h)/2:text='$1'" \
   resources/videos/"$2".mp4 -loglevel quiet
 }
@@ -199,7 +199,6 @@ recording(){
   nameOfFile=$1
   newCreation=$2
 
-  printf "\n $1 this is the passed on file \n"
   #Asking user to record voice
   printf "\nTime to record your voice for your awesome 5 second creation"
 
@@ -209,7 +208,7 @@ recording(){
   #Checking if the any key was pressed
   if [[ recordConfirmation ]]; then
     #start recording
-    printf "recording $2"
+    printf "Recording for $2"
   fi
 
   #This records voice
@@ -222,32 +221,32 @@ recording(){
   #playing bak recording when the user wants to
   if [ "$playbackDecision" == "y" ]; then
     #playing back recording
-    printf "\n This is your recording"
+    printf "\nThis is your recording"
+
+    #Playing recording
     timeout 5 ffplay resources/audios/$nameOfFile.wav -loglevel quiet
   fi
 
   #Asking if the user wants to keep the recording or redo it
-  while true
+  while [ ! "$recordingDecision" = "k" ] || [ ! "$recordingDecision" = "r" ]
   do
 
     #Asking if they want to keep the recording
     read -p $'\nDo you want to keep this recording or redo? (Enter [k] for keep or [r] for redo): ' recordingDecision
 
-    if [ "$recordingDecision" = "k" ]
+    if [ "$recordingDecision" = "k" ]; #Decision to keep file
     then
       break
-    fi
-
-    if    [ $recordingDecision = "r" ]  #Decision to record again
+    elif [ "$recordingDecision" = "r" ];  #Decision to record again
     then
-
       #Deleting previous recording
       rm resources/audios/$nameOfFile.wav
 
       #Starting the recording function again
       recording "$nameOfFile" "$newCreation"
 
-    fi
+      break
+fi
   done
 
 }
@@ -266,9 +265,9 @@ play_creation(){
 
   read -p $'\nWhich creation would you like to play. Type name here:' fileToPlay
 
-  #converting creations name to file name
-  #adding underscores
-  filename=$( echo $fileToPlay | tr ' ' '!@#_' )
+  #Converting creations name to file name
+  #Adding ^
+  filename=$( echo $fileToPlay | tr ' ' '^' )
   #adding file extension
   Filename="$filename.mkv"
 
@@ -284,7 +283,7 @@ play_creation(){
   fi
 
 
-  #playing file if it was found
+  #Playing file if it was found
   timeout 5 ffplay resources/creations/$Filename -loglevel quiet
 
 }
@@ -295,9 +294,9 @@ delete_creation(){
 
   read -p $'\n Which creation would you like to delete. Type name here: ' fileToDelete
 
-  #converting creations name to file name
-  #adding underscores
-  filename=$( echo $fileToDelete | tr ' ' '!@#_' )
+  #Converting creations name to file name
+  #Adding ^
+  filename=$( echo $fileToDelete | tr ' ' '^' )
   #adding file extension
   Filename="$filename.mkv"
 
